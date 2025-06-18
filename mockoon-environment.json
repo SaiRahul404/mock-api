@@ -1,50 +1,29 @@
 {
-    "uuid": "3b1f85e6-d492-40b3-8cdc-1f4db05a9e9a",
-    "type": "http",
-    "documentation": "",
-    "method": "get",
-    "endpoint": "users",
-    "responses": [
+  "source": "mockoon:environment",
+  "name": "Mock API",
+  "port": 3000,
+  "routes": [
+    {
+      "uuid": "3b1f85e6-d492-40b3-8cdc-1f4db05a9e9a",
+      "method": "get",
+      "endpoint": "users",
+      "responses": [
         {
-            "uuid": "c33787e0-df3d-452c-979e-8753f981a618",
-            "body": "[\n  {\n    \"id\": 1,\n    \"name\": \"John Doe\"\n  },\n  {\n    \"id\": 2,\n    \"name\": \"Jane Doe\"\n  }\n]",
-            "latency": 0,
-            "statusCode": 200,
-            "label": "",
-            "headers": [],
-            "bodyType": "INLINE",
-            "filePath": "",
-            "databucketID": "",
-            "sendFileAsBody": false,
-            "rules": [],
-            "rulesOperator": "OR",
-            "disableTemplating": false,
-            "fallbackTo404": false,
-            "default": true,
-            "crudKey": "id",
-            "callbacks": []
-        },
-        {
-            "uuid": "cec0c3dd-532f-4137-a0bd-3757775a6d3b",
-            "body": "[\r\n  { \"id\": 1, \"name\": \"John Doe\" },\r\n  { \"id\": 2, \"name\": \"Jane Doe\" }\r\n]\r\n",
-            "latency": 0,
-            "statusCode": 200,
-            "label": " (copy)",
-            "headers": [],
-            "bodyType": "INLINE",
-            "filePath": "",
-            "databucketID": "",
-            "sendFileAsBody": false,
-            "rules": [],
-            "rulesOperator": "OR",
-            "disableTemplating": false,
-            "fallbackTo404": false,
-            "default": false,
-            "crudKey": "id",
-            "callbacks": []
+          "uuid": "c33787e0-df3d-452c-979e-8753f981a618",
+          "body": "[\n  {\n    \"id\": 1,\n    \"name\": \"John Doe\"\n  },\n  {\n    \"id\": 2,\n    \"name\": \"Jane Doe\"\n  }\n]",
+          "latency": 0,
+          "statusCode": 200,
+          "headers": [
+            { "key": "Content-Type", "value": "application/json" },
+            { "key": "Access-Control-Allow-Origin", "value": "*" }
+          ],
+          "bodyType": "INLINE"
         }
-    ],
-    "responseMode": null,
-    "streamingMode": null,
-    "streamingInterval": 0
+      ],
+      "enabled": true
+    }
+  ],
+  "proxyMode": false,
+  "cors": true,
+  "hostname": "0.0.0.0"
 }
