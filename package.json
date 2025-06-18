@@ -7,7 +7,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@mockoon/cli": "^1.21.0"
+    "@mockoon/cli": "^9.2.0"
   },
   "engines": {
     "node": ">=16.0.0"
