@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const dataPath = path.join(__dirname, 'mockoon-environment.json');
-const port = parseInt(process.env.PORT) || 3001;
+const port = 3001;
 
 // Validate data file
 if (!fs.existsSync(dataPath)) {
