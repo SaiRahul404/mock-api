@@ -34,19 +34,20 @@ jobs:
           mkdir -p i18n
           # Check if file exists and contains valid JSON
           if [ -f "$TARGET_FILE" ] && jq empty "$TARGET_FILE" >/dev/null 2>&1; then
-            # Update existing valid JSON file
-            jq '.last_updated = "'"$(date +%Y-%m-%dT%H:%M:%S)"'"' "$TARGET_FILE" > temp.json && mv temp.json "$TARGET_FILE"
+            # Update existing valid JSON file with new timestamp and incremented version
+            jq '.last_updated = "'"$(date +%Y-%m-%dT%H:%M:%S.%NZ)"'" | .version = (.version // 0) + 1' "$TARGET_FILE" > temp.json && mv temp.json "$TARGET_FILE"
           else
-            # Create new file if it doesn't exist or is invalid
-            echo "{\"last_updated\": \"$(date +%Y-%m-%dT%H:%M:%S)\", \"translations\": {}}" > "$TARGET_FILE"
+            # Create new file with timestamp and initial version
+            echo "{\"last_updated\": \"$(date +%Y-%m-%dT%H:%M:%S.%NZ)\", \"version\": 1, \"translations\": {}}" > "$TARGET_FILE"
           fi
           echo "Updated $TARGET_FILE"
         shell: bash
 
       - name: Commit changes
         run: |
-          git add i18n/*.json
-          git commit -m "Update translation file i18n/en.json" || echo "No changes to commit"
+          TARGET_FILE="i18n/en.json"
+          git add "$TARGET_FILE"
+          git commit -m "Update translation file i18n/en.json with new timestamp and version"
           git push origin ${{ env.BRANCH_NAME }}
         shell: bash
 
@@ -68,7 +69,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr create --title "Translation Update for i18n/en.json" \
-                       --body "Automated update of translation file" \
+                       --body "Automated update of translation file with new timestamp and version" \
                        --base master \
                        --head ${{ env.BRANCH_NAME }}
         shell: bash
