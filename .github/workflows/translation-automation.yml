@@ -1,0 +1,64 @@
+name: Translation Automation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'i18n/**'
+  workflow_dispatch:
+    inputs:
+      target_file:
+        description: 'Path to target JSON file (e.g., i18n/en.json)'
+        required: false
+        default: 'i18n/en.json'
+
+jobs:
+  automate-translation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+# github actor
+      - name: Set up Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh
+#echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+#git checkout -b "$BRANCH_NAME"
+      - name: Create branch
+        run: |
+          BRANCH_NAME="translation-update/$(date +%Y%m%d%H%M%S)"
+          git checkout -b $BRANCH_NAME
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Ensure target JSON file exists
+        run: |
+          TARGET_FILE="${{ github.event.inputs.target_file }}"
+          : "${TARGET_FILE:=i18n/en.json}"
+          if [ ! -f "$TARGET_FILE" ]; then
+            echo '{"example_id": "example_translation"}' > "$TARGET_FILE"
+            echo "Created placeholder $TARGET_FILE"
+          fi
+        shell: bash
+#push origin ${{ steps.branch.outputs.branch }}
+      - name: Commit changes
+        run: |
+          git add i18n/*.json
+          git commit -m "Update translation file ${{ github.event.inputs.target_file || 'i18n/en.json' }}" || echo "No changes to commit"
+          git push origin ${{ env.BRANCH_NAME }}
+        shell: bash
+#--head ${{ steps.branch.outputs.branch }}
+
+      - name: Create pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create --title "Translation Update for ${{ github.event.inputs.target_file || 'i18n/en.json' }}" \
+                       --body "Automated update of translation file" \
+                       --base main \
+                       --head ${{ env.BRANCH_NAME }}
+        shell: bash
