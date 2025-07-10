@@ -5,12 +5,6 @@ on:
     branches: [master]
     paths:
       - 'i18n/**'
-  workflow_dispatch:
-    inputs:
-      target_file:
-        description: 'Path to target JSON file (e.g., i18n/en.json)'
-        required: false
-        default: 'i18n/en.json'
 
 jobs:
   automate-translation:
@@ -34,23 +28,23 @@ jobs:
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
         shell: bash
 
-      - name: Ensure target JSON file exists
+      - name: Update translation file
         run: |
-          TARGET_FILE="${{ github.event.inputs.target_file }}"
-          if [ -z "$TARGET_FILE" ]; then TARGET_FILE="i18n/en.json"; fi
+          TARGET_FILE="i18n/en.json"
           mkdir -p i18n
-          echo "{\"last_updated\": \"$(date +%Y-%m-%dT%H:%M:%S)\"}" > "$TARGET_FILE"
+          if [ -f "$TARGET_FILE" ]; then
+            jq '.last_updated = "'"$(date +%Y-%m-%dT%H:%M:%S)"'"' "$TARGET_FILE" > temp.json
+            mv temp.json "$TARGET_FILE"
+          else
+            echo "{\"last_updated\": \"$(date +%Y-%m-%dT%H:%M:%S)\", \"translations\": {}}" > "$TARGET_FILE"
+          fi
           echo "Updated $TARGET_FILE"
         shell: bash
 
       - name: Commit changes
         run: |
           git add i18n/*.json
-          COMMIT_MESSAGE="Update translation file ${{ github.event.inputs.target_file }}"
-          if [ -z "${{ github.event.inputs.target_file }}" ]; then
-            COMMIT_MESSAGE="Update translation file i18n/en.json"
-          fi
-          git commit -m "$COMMIT_MESSAGE" || echo "No changes to commit"
+          git commit -m "Update translation file i18n/en.json" || echo "No changes to commit"
           git push origin ${{ env.BRANCH_NAME }}
         shell: bash
 
@@ -65,15 +59,14 @@ jobs:
           done
           echo "Error: Branch never became available"
           exit 1
+        shell: bash
 
       - name: Create pull request
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_FILE="${{ github.event.inputs.target_file }}"
-          if [ -z "$PR_FILE" ]; then PR_FILE="i18n/en.json"; fi
-          gh pr create --title "Translation Update for $PR_FILE" \
+          gh pr create --title "Translation Update for i18n/en.json" \
                        --body "Automated update of translation file" \
-                       --base main \
+                       --base master \
                        --head ${{ env.BRANCH_NAME }}
         shell: bash
