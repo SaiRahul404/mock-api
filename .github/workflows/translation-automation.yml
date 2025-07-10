@@ -36,13 +36,11 @@ jobs:
         shell: bash
 
       - name: Ensure target JSON file exists
-        run: |
-          TARGET_FILE="${{ github.event.inputs.target_file }}"
-          : "${TARGET_FILE:=i18n/en.json}"
-          if [ ! -f "$TARGET_FILE" ]; then
-            echo '{"example_id": "example_translation"}' > "$TARGET_FILE"
-            echo "Created placeholder $TARGET_FILE"
-          fi
+run: |  
+    TARGET_FILE="${{ github.event.inputs.target_file || 'i18n/en.json' }}"  
+    mkdir -p i18n  
+    echo "{\"last_updated\": \"$(date +%Y-%m-%dT%H:%M:%S)\"}" > "$TARGET_FILE"  
+    echo "Updated $TARGET_FILE"
         shell: bash
 #push origin ${{ steps.branch.outputs.branch }}
       - name: Commit changes
