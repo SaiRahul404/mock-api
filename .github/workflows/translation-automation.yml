@@ -2,7 +2,7 @@ name: Translation Automation
 
 on:
   push:
-    branches: [ main ]
+    branches: [master]  
     paths:
       - 'i18n/**'
   workflow_dispatch:
