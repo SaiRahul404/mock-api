@@ -2,7 +2,7 @@ name: Translation Automation
 
 on:
   push:
-    branches: [master]  
+    branches: [master]
     paths:
       - 'i18n/**'
   workflow_dispatch:
@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-# github actor
+
       - name: Set up Git
         run: |
           git config --global user.name "GitHub Actions"
@@ -26,38 +26,37 @@ jobs:
 
       - name: Install GitHub CLI
         run: sudo apt-get update && sudo apt-get install -y gh
-#echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
-#git checkout -b "$BRANCH_NAME"
+
       - name: Create branch
         run: |
           BRANCH_NAME="translation-update/$(date +%Y%m%d%H%M%S)"
-          git checkout -b $BRANCH_NAME
+          git checkout -b "$BRANCH_NAME"
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
         shell: bash
 
       - name: Ensure target JSON file exists
         run: |
           TARGET_FILE="${{ github.event.inputs.target_file }}"
-          : "${TARGET_FILE:=i18n/en.json}"
-          if [ ! -f "$TARGET_FILE" ]; then
-            echo '{"example_id": "example_translation"}' > "$TARGET_FILE"
-            echo "Created placeholder $TARGET_FILE"
-          fi
+          if [ -z "$TARGET_FILE" ]; then TARGET_FILE="i18n/en.json"; fi
+          mkdir -p i18n
+          echo "{\"last_updated\": \"$(date +%Y-%m-%dT%H:%M:%S)\"}" > "$TARGET_FILE"
+          echo "Updated $TARGET_FILE"
         shell: bash
-#push origin ${{ steps.branch.outputs.branch }}
+
       - name: Commit changes
         run: |
           git add i18n/*.json
           git commit -m "Update translation file ${{ github.event.inputs.target_file || 'i18n/en.json' }}" || echo "No changes to commit"
           git push origin ${{ env.BRANCH_NAME }}
         shell: bash
-#--head ${{ steps.branch.outputs.branch }}
 
       - name: Create pull request
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr create --title "Translation Update for ${{ github.event.inputs.target_file || 'i18n/en.json' }}" \
+          PR_FILE="${{ github.event.inputs.target_file }}"
+          if [ -z "$PR_FILE" ]; then PR_FILE="i18n/en.json"; fi
+          gh pr create --title "Translation Update for $PR_FILE" \
                        --body "Automated update of translation file" \
                        --base main \
                        --head ${{ env.BRANCH_NAME }}
