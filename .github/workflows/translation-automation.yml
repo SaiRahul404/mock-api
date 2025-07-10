@@ -32,11 +32,10 @@ jobs:
         run: |
           TARGET_FILE="i18n/en.json"
           mkdir -p i18n
-          # Check if file exists and is valid JSON
+          # Check if file exists and contains valid JSON
           if [ -f "$TARGET_FILE" ] && jq empty "$TARGET_FILE" >/dev/null 2>&1; then
             # Update existing valid JSON file
-            jq '.last_updated = "'"$(date +%Y-%m-%dT%H:%M:%S)"'"' "$TARGET_FILE" > temp.json
-            mv temp.json "$TARGET_FILE"
+            jq '.last_updated = "'"$(date +%Y-%m-%dT%H:%M:%S)"'"' "$TARGET_FILE" > temp.json && mv temp.json "$TARGET_FILE"
           else
             # Create new file if it doesn't exist or is invalid
             echo "{\"last_updated\": \"$(date +%Y-%m-%dT%H:%M:%S)\", \"translations\": {}}" > "$TARGET_FILE"
