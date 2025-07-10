@@ -46,9 +46,25 @@ jobs:
       - name: Commit changes
         run: |
           git add i18n/*.json
-          git commit -m "Update translation file ${{ github.event.inputs.target_file || 'i18n/en.json' }}" || echo "No changes to commit"
+          COMMIT_MESSAGE="Update translation file ${{ github.event.inputs.target_file }}"
+          if [ -z "${{ github.event.inputs.target_file }}" ]; then
+            COMMIT_MESSAGE="Update translation file i18n/en.json"
+          fi
+          git commit -m "$COMMIT_MESSAGE" || echo "No changes to commit"
           git push origin ${{ env.BRANCH_NAME }}
         shell: bash
+
+      - name: Wait for branch availability
+        run: |
+          for i in {1..10}; do
+            if git ls-remote --exit-code origin ${{ env.BRANCH_NAME }}; then
+              echo "Branch detected after $i attempts"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Error: Branch never became available"
+          exit 1
 
       - name: Create pull request
         env:
