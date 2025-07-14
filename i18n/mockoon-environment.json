@@ -1,0 +1,29 @@
+{
+  "source": "mockoon:environment",
+  "name": "Mock API",
+  "port": 3000,
+  "routes": [
+    {
+      "uuid": "3b1f85e6-d492-40b3-8cdc-1f4db05a9e9a",
+      "method": "get",
+      "endpoint": "users",
+      "responses": [
+        {
+          "uuid": "c33787e0-df3d-452c-979e-8753f981a618",
+          "body": "[\n  {\n    \"id\": 1,\n    \"name\": \"John Doe\"\n  },\n  {\n    \"id\": 2,\n    \"name\": \"Jane Doe\"\n  }\n]",
+          "latency": 0,
+          "statusCode": 200,
+          "headers": [
+            { "key": "Content-Type", "value": "application/json" },
+            { "key": "Access-Control-Allow-Origin", "value": "*" }
+          ],
+          "bodyType": "INLINE"
+        }
+      ],
+      "enabled": true
+    }
+  ],
+  "proxyMode": false,
+  "cors": true,
+  "hostname": "0.0.0.0"
+}
