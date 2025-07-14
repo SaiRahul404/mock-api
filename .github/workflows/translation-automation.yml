@@ -1,6 +1,9 @@
-name: Translation Automation
+name: Create PR with i18n File Uploads
+
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - translation-temp  # Triggers when translation files are pushed here
 
 permissions:
   contents: write
@@ -9,8 +12,9 @@ permissions:
 jobs:
   create-pr:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout master branch
         uses: actions/checkout@v4
         with:
           ref: master
@@ -20,51 +24,45 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Create and switch to a new branch
+      - name: Create and switch to a new feature branch
         run: |
           BRANCH_NAME=i18n-update-${{ github.run_number }}
           git checkout -b $BRANCH_NAME
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
-      - name: Modify a file in i18n folder
-        run: |
-          FILE=$(find i18n -type f -name "*.json" | head -n 1)
-          echo "// Auto-update: $(date)" >> "$FILE"
-          echo "Modified file: $FILE"
+      - name: Checkout translation-temp branch to fetch all .json files
+        uses: actions/checkout@v4
+        with:
+          ref: translation-temp
+          path: temp-json
 
-      - name: Commit changes
+      - name: Copy translation files into i18n/ and delete originals
+        run: |
+          mkdir -p i18n
+          find temp-json -maxdepth 1 -name '*.json' -exec cp {} i18n/ \;
+          
+          echo "✅ Copied all translation .json files to i18n/"
+
+          # Clean up original .json files (simulate removing them from root)
+          find temp-json -maxdepth 1 -name '*.json' -exec rm {} \;
+          echo "🧹 Deleted original .json files from temp-json/"
+
+      - name: Commit the updated i18n folder and cleanup
         run: |
           git add i18n/
-          git commit -m "chore: automated i18n file update on $(date)"
-
-      - name: Push new branch to origin
+          git commit -m "chore: Add updated translation JSON files"
+          
+      - name: Push the feature branch
         run: |
           git push origin ${{ env.BRANCH_NAME }}
 
       - name: Create Pull Request
-        id: create_pr
         uses: devops-infra/action-pull-request@v0.5.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           source_branch: ${{ env.BRANCH_NAME }}
           target_branch: master
-          title: "Automated i18n Update: ${{ env.BRANCH_NAME }}"
-          body: "This PR includes an automated change to one i18n file."
-
-      - name: Install GitHub CLI
-        run: sudo apt install gh -y
-
-      - name: Authenticate with GitHub CLI
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-
-      - name: Merge the PR
-        run: |
-          echo "Trying to merge the PR from ${{ env.BRANCH_NAME }}"
-          PR_NUMBER=$(gh pr list --state open --head ${{ env.BRANCH_NAME }} --json number -q '.[0].number')
-
-          if [ -z "$PR_NUMBER" ]; then
-            echo "❌ No open PR found for branch ${{ env.BRANCH_NAME }}."
-            exit 1
-          fi
-
-          gh pr merge "$PR_NUMBER" --merge --admin --delete-branch
+          title: "Add Translations - ${{ env.BRANCH_NAME }}"
+          body: |
+            This PR adds translated JSON files into the i18n/ folder.
+            The original files from the translation-temp branch have been cleaned up.
