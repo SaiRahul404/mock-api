@@ -1,0 +1,15 @@
+{
+  "name": "mock-api",
+  "version": "1.0.0",
+  "description": "Mock API hosted on Render using Mockoon CLI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@mockoon/cli": "^9.2.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
